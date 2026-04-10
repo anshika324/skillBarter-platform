@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { getSocketBaseUrl } from '../utils/runtimeUrls';
 
 const SocketContext = createContext();
 
@@ -22,10 +23,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      const socketUrl =
-        import.meta.env.VITE_SOCKET_URL ||
-        import.meta.env.VITE_BACKEND_URL ||
-        'http://127.0.0.1:5001';
+      const socketUrl = getSocketBaseUrl();
       console.log('🔌 Connecting to socket:', socketUrl);
       
       const newSocket = io(socketUrl, {

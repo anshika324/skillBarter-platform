@@ -8,6 +8,7 @@ import io from 'socket.io-client';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { getSocketBaseUrl } from '../utils/runtimeUrls';
 
 export default function WhiteboardPage() {
   const { roomId } = useParams();
@@ -54,7 +55,7 @@ export default function WhiteboardPage() {
       canvas.height = window.innerHeight - 80; // Minus toolbar height
 
       // Initialize socket
-      socketRef.current = io(import.meta.env.VITE_API_URL || 'http://localhost:5001');
+      socketRef.current = io(getSocketBaseUrl());
 
       setupSocketListeners();
       joinWhiteboard();

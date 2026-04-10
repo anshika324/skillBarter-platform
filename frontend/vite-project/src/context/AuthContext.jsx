@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getApiBaseUrl } from '../utils/runtimeUrls';
 
 const AuthContext = createContext();
 
@@ -14,7 +15,7 @@ export const useAuth = () => {
 
 // Configure axios defaults
 // Prefer relative URL so Vite proxy can forward to backend.
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = getApiBaseUrl();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

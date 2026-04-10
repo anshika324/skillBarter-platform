@@ -8,6 +8,7 @@ import io from 'socket.io-client';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { getSocketBaseUrl } from '../utils/runtimeUrls';
 
 export default function VideoCallRoom() {
   const { roomId } = useParams();
@@ -79,10 +80,7 @@ export default function VideoCallRoom() {
       setChatMessages(response.data.chatMessages || []);
 
       // Initialize socket
-      const socketUrl =
-        import.meta.env.VITE_SOCKET_URL ||
-        import.meta.env.VITE_BACKEND_URL ||
-        'http://127.0.0.1:5001';
+      const socketUrl = getSocketBaseUrl();
 
       socketRef.current = io(socketUrl, {
         auth: { token: localStorage.getItem('token') }

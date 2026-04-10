@@ -6,9 +6,10 @@ import { useSocket } from '../context/SocketContext';
 import axios from 'axios';
 import { formatRelativeTime } from '../utils/helpers';
 import toast from 'react-hot-toast';
+import { getApiBaseUrl } from '../utils/runtimeUrls';
 
 // Prefer relative URL so Vite proxy can forward to backend.
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = getApiBaseUrl();
 
 const Messages = () => {
   const [searchParams] = useSearchParams();
