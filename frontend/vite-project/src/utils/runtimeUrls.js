@@ -24,7 +24,23 @@ export const normalizeRuntimeUrl = (value) => {
 
 export const getApiBaseUrl = () => {
   const raw = import.meta.env.VITE_API_URL || '/api';
-  return normalizeRuntimeUrl(raw);
+  const normalized = normalizeRuntimeUrl(raw);
+
+  // If a full backend origin is provided without an API path, default to `/api`.
+  // This prevents common deployment misconfigurations.
+  if (normalized && !normalized.startsWith('/')) {
+    try {
+      const parsed = new URL(normalized);
+      if (!parsed.pathname || parsed.pathname === '/') {
+        parsed.pathname = '/api';
+        return parsed.toString().replace(/\/$/, '');
+      }
+    } catch {
+      return normalized;
+    }
+  }
+
+  return normalized;
 };
 
 export const getSocketBaseUrl = () => {
