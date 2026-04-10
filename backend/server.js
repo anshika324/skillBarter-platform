@@ -8,7 +8,7 @@ const Message = require('./models/Message');
 const setupWebRTCSignaling = require('./sockets/webrtcSignaling');
 const setupWhiteboardSignaling = require('./sockets/whiteboardSignaling');
 
-const DEFAULT_CLIENT_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const DEFAULT_CLIENT_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://skill-barter-platform-6sb3.vercel.app'];
 
 const normalizeOrigin = (origin = '') => origin.trim().replace(/\/$/, '');
 
