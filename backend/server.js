@@ -5,9 +5,65 @@ const http = require('http');
 const socketIo = require('socket.io');
 const connectDB = require('./config/database');
 const Message = require('./models/Message');
-const { Server } = require('socket.io');
 const setupWebRTCSignaling = require('./sockets/webrtcSignaling');
 const setupWhiteboardSignaling = require('./sockets/whiteboardSignaling');
+
+const DEFAULT_CLIENT_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
+const normalizeOrigin = (origin = '') => origin.trim().replace(/\/$/, '');
+
+const buildAllowedOrigins = () => {
+  const fromCsv = (process.env.CLIENT_URLS || '')
+    .split(',')
+    .map((value) => normalizeOrigin(value))
+    .filter(Boolean);
+
+  return new Set(
+    [
+      process.env.CLIENT_URL,
+      process.env.FRONTEND_URL,
+      ...DEFAULT_CLIENT_ORIGINS,
+      ...fromCsv
+    ]
+      .map((value) => normalizeOrigin(value || ''))
+      .filter(Boolean)
+  );
+};
+
+const ALLOWED_ORIGINS = buildAllowedOrigins();
+const ALLOW_VERCEL_ORIGINS = process.env.ALLOW_VERCEL_ORIGINS !== 'false';
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (ALLOWED_ORIGINS.has(normalizedOrigin)) {
+    return true;
+  }
+
+  if (ALLOW_VERCEL_ORIGINS && normalizedOrigin.endsWith('.vercel.app')) {
+    return true;
+  }
+
+  return false;
+};
+
+const corsOriginHandler = (origin, callback) => {
+  if (isOriginAllowed(origin)) {
+    callback(null, true);
+    return;
+  }
+
+  console.warn(`Blocked by CORS: ${origin}`);
+  callback(new Error('Not allowed by CORS'));
+};
+
+const corsConfig = {
+  origin: corsOriginHandler,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
 
 
@@ -17,11 +73,7 @@ const server = http.createServer(app);
 
 // Initialize Socket.io with proper CORS
 const io = socketIo(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
+  cors: corsConfig
 });
 
 setupWebRTCSignaling(io);
@@ -31,10 +83,7 @@ setupWhiteboardSignaling(io);
 connectDB();
 
 // CORS Middleware - MUST be before routes
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(cors(corsConfig));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -253,6 +302,8 @@ function printServerBanner(port) {
   console.log(`║  🚀 Server running on port ${port}      ║`);
   console.log(`║  🌍 Environment: ${process.env.NODE_ENV || 'development'}         ║`);
   console.log('╚════════════════════════════════════════╝');
+  console.log('Allowed CORS origins:', Array.from(ALLOWED_ORIGINS));
+  console.log('Allow *.vercel.app origins:', ALLOW_VERCEL_ORIGINS);
 }
 
 server.on('error', (error) => {
