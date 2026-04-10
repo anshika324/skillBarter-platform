@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { VALID_ROLES, DEFAULT_ROLE } = require('../middleware/roles');
 const {
   SKILL_LEVELS,
@@ -237,6 +238,21 @@ userSchema.index({ 'location.city': 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ 'teachingSkills.normalizedName': 1, isActive: 1 });
 userSchema.index({ 'learningSkills.normalizedName': 1, isActive: 1 });
+
+// Ensure passwords are stored securely.
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+});
 
 const User = mongoose.model('User', userSchema);
 

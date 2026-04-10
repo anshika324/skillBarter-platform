@@ -165,8 +165,15 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Validate password
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Validate password. Support legacy plain-text rows and auto-migrate them.
+    let isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch && user.password === password) {
+      user.password = password;
+      await user.save();
+      isMatch = true;
+    }
+
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
