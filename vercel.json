@@ -2,5 +2,11 @@
   "framework": "vite",
   "installCommand": "npm --prefix frontend/vite-project install",
   "buildCommand": "npm --prefix frontend/vite-project run build",
-  "outputDirectory": "frontend/vite-project/dist"
+  "outputDirectory": "frontend/vite-project/dist",
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

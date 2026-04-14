@@ -1,6 +1,7 @@
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
 
 const isBrowser = typeof window !== 'undefined';
+const isVercelHost = () => isBrowser && window.location.hostname.endsWith('.vercel.app');
 
 const shouldUpgradeToHttps = (hostname) => {
   if (!isBrowser) return false;
@@ -23,6 +24,11 @@ export const normalizeRuntimeUrl = (value) => {
 };
 
 export const getApiBaseUrl = () => {
+  // On Vercel, prefer same-origin API proxy to avoid client-side DNS issues on some networks.
+  if (isVercelHost()) {
+    return '/api';
+  }
+
   const raw = import.meta.env.VITE_API_URL || '/api';
   const normalized = normalizeRuntimeUrl(raw);
 
